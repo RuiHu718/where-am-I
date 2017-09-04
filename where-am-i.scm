@@ -137,10 +137,10 @@
 ;; cons'ed to the front of it.  
 ;; 
 
-(define (partition pivot num-list)
+(define (partition pivot num-list comp)
   (if (null? num-list) '(() ())
-      (let ((split-of-rest (partition pivot (cdr num-list))))
-	(if (< (car num-list) pivot)
+      (let ((split-of-rest (partition pivot (cdr num-list) comp)))
+	(if (comp (car num-list) pivot)
 	    (list (cons (car num-list) (car split-of-rest)) (cadr split-of-rest))
 	    (list (car split-of-rest) (cons (car num-list) (car (cdr split-of-rest))))))))
 
@@ -156,12 +156,12 @@
 ;; together in the proper order.
 ;;
 
-(define (quicksort num-list)
+(define (quicksort num-list comp)
   (if (<= (length num-list) 1) num-list
-      (let ((split (partition (car num-list) (cdr num-list))))
-	(append (quicksort (car split)) 
+      (let ((split (partition (car num-list) (cdr num-list) comp)))
+	(append (quicksort (car split) comp) 
 		(list (car num-list)) 
-		(quicksort (cadr split))))))
+		(quicksort (cadr split) comp)))))
 
 ;;
 ;; Function: remove
@@ -260,3 +260,80 @@
 (define (rate-points ls)
   (map (lambda (ele) (list (distance-product ele ls) ele))
        ls))
+
+;;
+;; Function: comp-rated-points
+;; -----------------------------
+;; The comp function used by qsort
+;; to sort rated points
+
+(define (comp-rated-points rated_pt1 rated_pt2)
+  (< (car rated_pt1) (car rated_pt2)))
+
+;;
+;; Function: sort-points
+;; ----------------------
+;; Uses qsort to sort a list
+;; of rated points
+
+(define (sort-points ls)
+  (quicksort ls comp-rated-points))
+
+;;
+;; Function: clumped-points
+;; ------------------------
+;; takes a list of points, rates
+;; them, sorts them, and then returns the half of the points with the smallest ratings. 
+
+(define (clumped-points ls)
+  (map cadr (prefix-of-list (sort-points (rate-points ls))
+		  (quotient (length ls) 2))))
+
+;;
+;; Function: average
+;; -----------------
+
+(define (average num-list)
+ (/ (apply + num-list) (length num-list)))
+
+;;
+;; Function: average-point
+;; -----------------------
+;; take a list of points and averages them all down to a single
+;; point. average-point should also include the distance
+;; rating indicating how far the average point was from all the points.
+
+(define (average-point ls)
+  (let ((ave-point (list (average (map car ls))
+			 (average (map cadr ls)))))
+    (list (distance-product ave-point ls)
+	  ave-point)))
+
+;;
+;; Function: best-estimate
+;; -----------------------
+;; Built on all of the functions so far, the function best-estimate takes a guess (a list of
+;; circles), computes all the points of intersection, winnows those points down to those
+;; which are most clumped, and returns their average point.
+
+(define (best-estimate ls)
+  (average-point (clumped-points (intersection-points ls))))
+
+;;
+;; Function: where-am-i
+;; --------------------
+;; Finally, given a list of distances and a list of star locations, the function where-am-i
+;; should compute all the possible guesses, use best-estimate to get an answer out of
+;; each one, and sort the estimates in increasing order of distance rating. The result is a
+;; list of rated points. The first point is where you are, the rest are your other possible
+;; locations, in decreasing order of likelihood.
+
+(define (where-am-i list_distances list_stars)
+  (sort-points (map best-estimate (all-guesses list_distances list_stars))))
+
+
+
+
+
+
+

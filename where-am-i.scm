@@ -209,3 +209,54 @@
 ;; it to override exisiting definitions and including
 ;; the most recently implemented into the lot.
 ;;
+
+;;
+;; Function: intersection-points-helper
+;; ------------------------------------
+;; Takes car of the list then intersect it
+;; with all the list items after it
+
+;; (define (intersection-points-helper ls)
+;;   (if (= (length ls) 1) '()
+;;       (append (list (car ls) (car (cdr ls)))
+;; 	      (intersection-points-helper (cons (car ls) (cdr (cdr ls)))))))
+
+(define (intersection-points-helper ls)
+  (if (= (length ls) 1) '()
+      (append (intersect (car ls) (car (cdr ls)))
+	      (intersection-points-helper (cons (car ls) (cdr (cdr ls)))))))
+
+;;
+;; Function: intersection-points
+;; --------------------------------
+;; intersects the first element with
+;; all the elements at its right, then
+;; intersects the second elements with
+;; all the elements at its right and so on
+;; uses intersection-points-helper
+
+(define (intersection-points ls)
+  (if (null? ls) '()
+      (append (intersection-points-helper ls)
+	      (intersection-points-helper (cdr ls)))))
+
+
+;;
+;; Function: distance-product
+;; ---------------------------
+;; return the product of distances between
+;; point A and a list of points
+
+(define (distance-product pt ls)
+  (apply * (map (lambda (ele) (dist pt ele))
+		(remove pt ls))))
+
+;;
+;; Function: rate-points
+;; ----------------------
+;; returns a list where each point is annotated to show its distance-product
+;; from the other points.
+
+(define (rate-points ls)
+  (map (lambda (ele) (list (distance-product ele ls) ele))
+       ls))
